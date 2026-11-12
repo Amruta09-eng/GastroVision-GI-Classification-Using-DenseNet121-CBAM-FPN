@@ -1,0 +1,37 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# PyTorch / Deep Learning checkpoints and models
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Operating System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Quarantine folder (preserved locally in Downloads/Gastrovision_5classes_Problematic_Images)
+Problematic_Images_Quarantine/
+
+# Unsplit duplicates (the cleaned & stratified dataset is in dataset/)
+/Colon polyps/
+/Normal mucosa and vascular pattern in the large bowel/
+/Normal stomach/
+/Pylorus/
+/Small bowel_terminal ileum/

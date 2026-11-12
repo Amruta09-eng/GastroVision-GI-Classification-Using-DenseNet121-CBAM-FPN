@@ -1,0 +1,105 @@
+15:30:55  INFO      CPU mode: No CUDA GPU (reason: No module named 'cupy'). Using 8-thread CPU.
+15:30:55  INFO      ============================================================
+15:30:55  INFO        Gastrovision Dataset Cleaner
+15:30:55  INFO        Blur threshold  : 100.0
+15:30:55  INFO        pHash threshold : 8
+15:30:55  INFO        Acceleration    : CPU (8 threads)
+15:30:55  INFO        Output dir      : c:\Users\AMRUTA M PATIL\Downloads\Gastrovision_5classes\_cleaned
+15:30:55  INFO        Trash dir       : c:\Users\AMRUTA M PATIL\Downloads\Gastrovision_5classes\_removed
+15:30:55  INFO      ============================================================
+15:30:55  INFO      
+Found 4495 images across 5 classes
+15:30:55  INFO        Colon polyps: 820 images
+15:30:55  INFO        Normal mucosa and vascular pattern in the large bowel: 1467 images
+15:30:55  INFO        Normal stomach: 969 images
+15:30:55  INFO        Pylorus: 393 images
+15:30:55  INFO        Small bowel_terminal ileum: 846 images
+15:30:55  INFO      
+────────────────────────────────────────────────────────────
+15:30:55  INFO      Processing class: 'Colon polyps'  (820 images)
+15:30:55  INFO        Corruption: 0 removed → 820 remain
+15:30:55  INFO        Blur threshold: 100.0  |  Mode: CPU×8
+15:31:07  INFO        Blur: 37 removed → 783 remain
+15:31:08  INFO        Exact dup: 1 removed → 782 remain
+15:31:08  INFO        pHash Hamming threshold: 8
+15:31:36  INFO        Near dup: 65 removed → 717 remain
+15:31:36  INFO      
+────────────────────────────────────────────────────────────
+15:31:36  INFO      Processing class: 'Normal mucosa and vascular pattern in the large bowel'  (1467 images)
+15:31:37  INFO        Corruption: 0 removed → 1467 remain
+15:31:37  INFO        Blur threshold: 100.0  |  Mode: CPU×8
+15:31:50  INFO        Blur: 23 removed → 1444 remain
+15:31:51  INFO        Exact dup: 0 removed → 1444 remain
+15:31:51  INFO        pHash Hamming threshold: 8
+15:32:26  INFO        Near dup: 254 removed → 1190 remain
+15:32:26  INFO      
+────────────────────────────────────────────────────────────
+15:32:26  INFO      Processing class: 'Normal stomach'  (969 images)
+15:32:30  INFO        Corruption: 0 removed → 969 remain
+15:32:30  INFO        Blur threshold: 100.0  |  Mode: CPU×8
+15:33:15  INFO        Blur: 133 removed → 836 remain
+15:33:18  INFO        Exact dup: 0 removed → 836 remain
+15:33:18  INFO        pHash Hamming threshold: 8
+15:33:48  INFO        Near dup: 97 removed → 739 remain
+15:33:48  INFO      
+────────────────────────────────────────────────────────────
+15:33:48  INFO      Processing class: 'Pylorus'  (393 images)
+15:33:49  INFO        Corruption: 0 removed → 393 remain
+15:33:49  INFO        Blur threshold: 100.0  |  Mode: CPU×8
+15:34:00  INFO        Blur: 41 removed → 352 remain
+15:34:01  INFO        Exact dup: 0 removed → 352 remain
+15:34:01  INFO        pHash Hamming threshold: 8
+15:34:06  INFO        Near dup: 52 removed → 300 remain
+15:34:06  INFO      
+────────────────────────────────────────────────────────────
+15:34:06  INFO      Processing class: 'Small bowel_terminal ileum'  (846 images)
+15:34:08  INFO        Corruption: 0 removed → 846 remain
+15:34:08  INFO        Blur threshold: 100.0  |  Mode: CPU×8
+15:34:30  INFO        Blur: 70 removed → 776 remain
+15:34:31  INFO        Exact dup: 0 removed → 776 remain
+15:34:31  INFO        pHash Hamming threshold: 8
+15:34:46  INFO        Near dup: 95 removed → 681 remain
+15:34:46  INFO      
+════════════════════════════════════════════════════════════
+15:34:46  INFO      REMOVAL SUMMARY
+15:34:46  INFO      ════════════════════════════════════════════════════════════
+15:34:46  INFO        blurry                :   304 removed
+15:34:46  INFO        exact_duplicate       :     1 removed
+15:34:46  INFO        near_duplicate        :   563 removed
+15:34:46  INFO        ──────────────────────────────
+15:34:46  INFO        TOTAL REMOVED         :   868  (19.3%)
+15:34:46  INFO        TOTAL KEPT            :  3627  / 4495
+15:34:46  INFO      
+  Per-class (after cleaning):
+15:34:46  INFO          Colon polyps: 717
+15:34:46  INFO          Normal mucosa and vascular pattern in the large bowel: 1190
+15:34:46  INFO          Normal stomach: 739
+15:34:46  INFO          Pylorus: 300
+15:34:46  INFO          Small bowel_terminal ileum: 681
+15:34:59  INFO      
+════════════════════════════════════════════════════════════
+15:34:59  INFO      TRAIN / VAL / TEST SPLIT  →  c:\Users\AMRUTA M PATIL\Downloads\Gastrovision_5classes\_cleaned
+15:34:59  INFO      ════════════════════════════════════════════════════════════
+15:34:59  INFO      
+  [TRAIN]  2537 images
+15:34:59  INFO          Colon polyps: 501
+15:34:59  INFO          Normal mucosa and vascular pattern in the large bowel: 833
+15:34:59  INFO          Normal stomach: 517
+15:34:59  INFO          Pylorus: 210
+15:34:59  INFO          Small bowel_terminal ileum: 476
+15:34:59  INFO      
+  [VAL]  542 images
+15:34:59  INFO          Colon polyps: 107
+15:34:59  INFO          Normal mucosa and vascular pattern in the large bowel: 178
+15:34:59  INFO          Normal stomach: 110
+15:34:59  INFO          Pylorus: 45
+15:34:59  INFO          Small bowel_terminal ileum: 102
+15:34:59  INFO      
+  [TEST]  548 images
+15:34:59  INFO          Colon polyps: 109
+15:34:59  INFO          Normal mucosa and vascular pattern in the large bowel: 179
+15:34:59  INFO          Normal stomach: 112
+15:34:59  INFO          Pylorus: 45
+15:34:59  INFO          Small bowel_terminal ileum: 103
+15:34:59  INFO      
+✅  Done! Full log saved to: cleaning_log.txt
