@@ -249,7 +249,17 @@ print("Dataset successfully ready and verified!")""")
 
 # --- Cell 3: Preprocessing & CLAHE Transform ---
 add_md("## Step 3: Preprocessing (Resize + CLAHE on L Channel of LAB)")
-add_code("""class CLAHETransform:
+add_code("""import cv2
+import numpy as np
+from PIL import Image
+from collections import Counter
+import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+class CLAHETransform:
     \"\"\"
     Applies Contrast Limited Adaptive Histogram Equalization (CLAHE)
     to the L-channel of the LAB color space.
