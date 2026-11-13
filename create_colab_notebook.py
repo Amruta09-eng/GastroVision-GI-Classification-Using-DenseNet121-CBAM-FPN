@@ -111,7 +111,7 @@ add_md("## Step 2: Locate Dataset (Auto-Search in Drive / GitHub Fallback) & Spl
 add_code("""# ==============================================================================
 # CELL 2: SMART DATASET FINDER & UNZIP (HANDLES DRIVE FOLDERS & RENAMES)
 # ==============================================================================
-import os, glob, zipfile, shutil
+import os, glob, zipfile, shutil, random
 
 RAW_DATA_DIR = '/content/raw_data'
 if os.path.exists(RAW_DATA_DIR):
