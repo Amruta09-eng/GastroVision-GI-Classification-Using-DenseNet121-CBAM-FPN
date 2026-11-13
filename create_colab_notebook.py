@@ -347,7 +347,12 @@ print(f"Calculated class weights: {[round(w, 3) for w in class_weights]}")""")
 
 # --- Cell 4: Model Architectures ---
 add_md("## Step 4: Model Architectures (Baseline vs Full Model with CBAM + FPN)")
-add_code("""# ==========================================
+add_code("""import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision import models
+
+# ==========================================
 # 1. BASELINE MODEL: DenseNet121 Standard
 # ==========================================
 class DenseNet121_Baseline(nn.Module):
@@ -515,7 +520,13 @@ print(f"Added attention & fusion params: {p_full - p_base:,} (~{(p_full-p_base)/
 
 # --- Cell 5: Training Function with Early Stopping ---
 add_md("## Step 5: Training Loop with Backbone Freezing & Early Stopping")
-add_code("""def train_model(model, model_name, train_loader, val_loader, class_weights,
+add_code("""import os, copy, torch, torch.nn as nn
+
+if 'SAVE_DIR' not in globals():
+    SAVE_DIR = '/content/drive/MyDrive/Gastrovision_Project_Results' if os.path.exists('/content/drive/MyDrive') else '/content/results'
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+def train_model(model, model_name, train_loader, val_loader, class_weights,
                 max_epochs=60, freeze_epochs=8, patience=12):
     print(f\"\\n{'='*70}\\nSTARTING TRAINING: {model_name}\\n{'='*70}\")
     model = model.to(device)
@@ -645,7 +656,19 @@ add_code("""def train_model(model, model_name, train_loader, val_loader, class_w
 
 # --- Cell 6: Run Training ---
 add_md("## Step 6: Train Baseline and Full Model")
-add_code("""# Train Baseline Model
+add_code("""import random, numpy as np, torch
+
+if 'SEED' not in globals():
+    SEED = 42
+def seed_everything(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+# Train Baseline Model
 baseline_model = DenseNet121_Baseline(num_classes=5)
 baseline_model, baseline_history, baseline_best_ep = train_model(
     baseline_model, "DenseNet121_Baseline",
@@ -664,7 +687,16 @@ full_model, full_history, full_best_ep = train_model(
 
 # --- Cell 7: Evaluation Function ---
 add_md("## Step 7: Comprehensive Evaluation on 678 Test Images")
-add_code("""def evaluate_model(model, test_loader, model_name):
+add_code("""import numpy as np
+import pandas as pd
+import torch
+import torch.nn.functional as F
+from sklearn.metrics import (
+    accuracy_score, precision_recall_fscore_support, confusion_matrix,
+    roc_curve, auc, precision_recall_curve, average_precision_score
+)
+
+def evaluate_model(model, test_loader, model_name):
     model.eval()
     all_preds = []
     all_targets = []
@@ -755,7 +787,11 @@ full_results = evaluate_model(full_model,     test_loader, "DenseNet121_CBAM_FPN
 
 # --- Cell 8: Plotting Curves ---
 add_md("## Step 8: Generate All Teacher-Requested Plots & Curves")
-add_code("""plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+add_code("""import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
 fig_paths = []
 
 # 1. Loss & Accuracy Curves
@@ -872,7 +908,11 @@ print(f"All 4 figure panels successfully generated and saved to: {SAVE_DIR}")"""
 
 # --- Cell 9: Comparison Table & Download Zip ---
 add_md("## Step 9: Final Comparison Table and Downloadable Results Zip Archive")
-add_code("""# Final Comparison Table
+add_code("""import os, shutil
+import pandas as pd
+from google.colab import files
+
+# Final Comparison Table
 comparison_df = pd.DataFrame({
     'Metric / Property': [
         'Model Parameters',
