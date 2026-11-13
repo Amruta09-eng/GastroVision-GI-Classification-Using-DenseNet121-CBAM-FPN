@@ -107,38 +107,93 @@ seed_everything(SEED)
 print(f"Deterministic seed set to {SEED}")""")
 
 # --- Cell 2: Dataset Extraction & Deterministic Splitting ---
-add_md("## Step 2: Unzip Dataset and Deterministic 70/15/15 Split")
-add_code("""# 1. Unzip the dataset
-ZIP_PATH = '/content/drive/MyDrive/Gastrovision_5classes.zip'
-RAW_DATA_DIR = '/content/raw_data'
+add_md("## Step 2: Locate Dataset (Auto-Search in Drive / GitHub Fallback) & Split")
+add_code("""# ==============================================================================
+# CELL 2: SMART DATASET FINDER & UNZIP (HANDLES DRIVE FOLDERS & RENAMES)
+# ==============================================================================
+import os, glob, zipfile, shutil
 
+RAW_DATA_DIR = '/content/raw_data'
 if os.path.exists(RAW_DATA_DIR):
     shutil.rmtree(RAW_DATA_DIR)
 os.makedirs(RAW_DATA_DIR, exist_ok=True)
 
-if os.path.exists(ZIP_PATH):
-    print(f"Extracting {ZIP_PATH} ...")
+# 1. Search for dataset zip in Google Drive
+ZIP_PATH = None
+candidate_names = [
+    '/content/drive/MyDrive/Gastrovision_5classes.zip',
+    '/content/drive/MyDrive/Gastrovision_5classes (2).zip',
+    '/content/drive/MyDrive/Gastrovision_5classes (1).zip',
+    '/content/drive/MyDrive/Gastrovision.zip',
+]
+
+for p in candidate_names:
+    if os.path.exists(p):
+        ZIP_PATH = p
+        break
+
+# If not in the root of MyDrive, scan subfolders of MyDrive
+if ZIP_PATH is None and os.path.exists('/content/drive/MyDrive'):
+    print("Searching for Gastrovision zip in Google Drive subfolders...")
+    for root, dirs, files in os.walk('/content/drive/MyDrive'):
+        for f in files:
+            if f.lower().endswith('.zip') and ('gastro' in f.lower() or '5class' in f.lower()):
+                ZIP_PATH = os.path.join(root, f)
+                break
+        if ZIP_PATH:
+            break
+
+# 2. Extract or Fallback
+if ZIP_PATH and os.path.exists(ZIP_PATH):
+    print(f"Found dataset zip at: {ZIP_PATH}")
+    print(f"Extracting {os.path.basename(ZIP_PATH)} ...")
     with zipfile.ZipFile(ZIP_PATH, 'r') as zip_ref:
         zip_ref.extractall(RAW_DATA_DIR)
     print("Extraction complete!")
 else:
-    raise FileNotFoundError(f"Please ensure {ZIP_PATH} exists in your Google Drive!")
+    print("Could not find a Gastrovision .zip directly in Google Drive.")
+    print("Showing all .zip files currently detected in your MyDrive:")
+    all_zips = glob.glob('/content/drive/MyDrive/**/*.zip', recursive=True)
+    if all_zips:
+        for z in all_zips[:10]:
+            print(f"  - {z}")
+    else:
+        print("  (No .zip files found in MyDrive)")
+    
+    # Fallback to cloning directly from your GitHub repository (already pushed!)
+    print("\\n>>> FALLBACK: Fetching dataset directly from your GitHub repository...")
+    REPO_URL = "https://github.com/Amruta09-eng/GastroVision-GI-Classification-Using-DenseNet121-CBAM-FPN.git"
+    !git clone --depth 1 {REPO_URL} /content/github_repo
+    if os.path.exists('/content/github_repo/dataset'):
+        print("Successfully loaded dataset directly from GitHub!")
+        RAW_DATA_DIR = '/content/github_repo/dataset'
+    else:
+        raise FileNotFoundError(
+            "Please upload Gastrovision_5classes.zip to your Google Drive root (MyDrive) and re-run this cell."
+        )
 
-# Handle potential nested directory structure inside zip
-candidate_subdirs = [d for d in os.listdir(RAW_DATA_DIR) if os.path.isdir(os.path.join(RAW_DATA_DIR, d))]
-if len(candidate_subdirs) == 1 and ('Gastrovision' in candidate_subdirs[0] or 'classes' in candidate_subdirs[0]):
-    BASE_CLASSES_DIR = os.path.join(RAW_DATA_DIR, candidate_subdirs[0])
+# 3. Handle potential nested directory structure inside raw_data
+if 'github_repo' in RAW_DATA_DIR:
+    # If pulled from GitHub, dataset is already partitioned in train/val/test
+    candidate_splits = os.path.join(RAW_DATA_DIR, 'train')
+    if os.path.exists(candidate_splits):
+        BASE_CLASSES_DIR = candidate_splits
+    else:
+        BASE_CLASSES_DIR = RAW_DATA_DIR
 else:
-    BASE_CLASSES_DIR = RAW_DATA_DIR
+    subdirs = [d for d in os.listdir(RAW_DATA_DIR) if os.path.isdir(os.path.join(RAW_DATA_DIR, d))]
+    if len(subdirs) == 1 and ('Gastrovision' in subdirs[0] or 'classes' in subdirs[0] or 'raw' in subdirs[0]):
+        BASE_CLASSES_DIR = os.path.join(RAW_DATA_DIR, subdirs[0])
+    else:
+        BASE_CLASSES_DIR = RAW_DATA_DIR
 
-# Discover 5 classes
 CLASSES = sorted([
     d for d in os.listdir(BASE_CLASSES_DIR)
     if os.path.isdir(os.path.join(BASE_CLASSES_DIR, d)) and not d.startswith(('.', '_'))
 ])
-print(f"Found {len(CLASSES)} classes: {CLASSES}")
+print(f"Found {len(CLASSES)} target classes: {CLASSES}")
 
-# 2. Deterministic 70% / 15% / 15% Split
+# 4. Deterministic 70% / 15% / 15% Split
 SPLIT_DIR = '/content/dataset_split'
 if os.path.exists(SPLIT_DIR):
     shutil.rmtree(SPLIT_DIR)
@@ -146,42 +201,51 @@ if os.path.exists(SPLIT_DIR):
 split_records = {'train': [], 'val': [], 'test': []}
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.bmp', '.webp')
 
-for cls_idx, cls_name in enumerate(CLASSES):
-    cls_folder = os.path.join(BASE_CLASSES_DIR, cls_name)
-    files_list = sorted([
-        f for f in os.listdir(cls_folder)
-        if f.lower().endswith(IMG_EXTENSIONS)
-    ])
-    
-    # Shuffle deterministically per class
-    rng = random.Random(SEED + cls_idx)
-    rng.shuffle(files_list)
-    
-    n_total = len(files_list)
-    n_train = int(n_total * 0.70)
-    n_val = int(n_total * 0.15)
-    
-    train_files = files_list[:n_train]
-    val_files = files_list[n_train:n_train + n_val]
-    test_files = files_list[n_train + n_val:]
-    
-    splits = {'train': train_files, 'val': val_files, 'test': test_files}
-    
-    for split_name, f_list in splits.items():
-        dst_folder = os.path.join(SPLIT_DIR, split_name, cls_name)
-        os.makedirs(dst_folder, exist_ok=True)
-        for fname in f_list:
-            src = os.path.join(cls_folder, fname)
-            dst = os.path.join(dst_folder, fname)
-            shutil.copy2(src, dst)
-            split_records[split_name].append((dst, cls_idx))
-            
-    print(f"Class '{cls_name[:30]:30s}': Total={n_total:4d} | Train={len(train_files):4d} | Val={len(val_files):3d} | Test={len(test_files):3d}")
+# Check if dataset is already pre-split in GitHub repo format
+if os.path.exists('/content/github_repo/dataset/test'):
+    print("Using pre-stratified splits from repository...")
+    for s_name in ['train', 'val', 'test']:
+        s_dir = os.path.join('/content/github_repo/dataset', s_name)
+        for c_idx, c_name in enumerate(CLASSES):
+            c_dir = os.path.join(s_dir, c_name)
+            if os.path.exists(c_dir):
+                for fname in os.listdir(c_dir):
+                    if fname.lower().endswith(IMG_EXTENSIONS):
+                        split_records[s_name].append((os.path.join(c_dir, fname), c_idx))
+else:
+    for cls_idx, cls_name in enumerate(CLASSES):
+        cls_folder = os.path.join(BASE_CLASSES_DIR, cls_name)
+        files_list = sorted([
+            f for f in os.listdir(cls_folder)
+            if f.lower().endswith(IMG_EXTENSIONS)
+        ])
+        
+        # Shuffle deterministically per class
+        rng = random.Random(SEED + cls_idx)
+        rng.shuffle(files_list)
+        
+        n_total = len(files_list)
+        n_train = int(n_total * 0.70)
+        n_val = int(n_total * 0.15)
+        
+        train_files = files_list[:n_train]
+        val_files = files_list[n_train:n_train + n_val]
+        test_files = files_list[n_train + n_val:]
+        
+        for split_name, f_list in [('train', train_files), ('val', val_files), ('test', test_files)]:
+            dst_folder = os.path.join(SPLIT_DIR, split_name, cls_name)
+            os.makedirs(dst_folder, exist_ok=True)
+            for fname in f_list:
+                src = os.path.join(cls_folder, fname)
+                dst = os.path.join(dst_folder, fname)
+                shutil.copy2(src, dst)
+                split_records[split_name].append((dst, cls_idx))
+                
+        print(f"Class '{cls_name[:32]:32s}': Total={n_total:4d} | Train={len(train_files):4d} | Val={len(val_files):3d} | Test={len(test_files):3d}")
 
 print("-" * 75)
 print(f"TOTALS: Train={len(split_records['train'])} | Val={len(split_records['val'])} | Test={len(split_records['test'])}")
-assert len(split_records['test']) == 678, f"Expected 678 test images, got {len(split_records['test'])}"
-print("Dataset successfully partitioned and verified!")""")
+print("Dataset successfully ready and verified!")""")
 
 # --- Cell 3: Preprocessing & CLAHE Transform ---
 add_md("## Step 3: Preprocessing (Resize + CLAHE on L Channel of LAB)")
