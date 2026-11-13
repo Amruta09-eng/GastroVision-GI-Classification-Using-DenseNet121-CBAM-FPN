@@ -527,7 +527,7 @@ if 'SAVE_DIR' not in globals():
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 def train_model(model, model_name, train_loader, val_loader, class_weights,
-                max_epochs=60, freeze_epochs=8, patience=12):
+                max_epochs=60, freeze_epochs=8, patience=20):
     print(f\"\\n{'='*70}\\nSTARTING TRAINING: {model_name}\\n{'='*70}\")
     model = model.to(device)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
@@ -536,6 +536,7 @@ def train_model(model, model_name, train_loader, val_loader, class_weights,
     if isinstance(model, DenseNet121_Baseline):
         backbone_params = [p for name, p in model.densenet.named_parameters() if 'classifier' not in name]
         head_params = list(model.densenet.classifier.parameters())
+        backbone_lr = 5e-5
     else:
         backbone_params = (
             list(model.stage1.parameters()) +
@@ -548,13 +549,15 @@ def train_model(model, model_name, train_loader, val_loader, class_weights,
             list(model.smooth1.parameters()) + list(model.smooth2.parameters()) + list(model.smooth3.parameters()) +
             list(model.classifier.parameters())
         )
+        # Gentle backbone fine-tuning so multi-scale FPN branches don't disrupt pretrained features
+        backbone_lr = 2e-5
 
     # Initial freeze of backbone
     for p in backbone_params:
         p.requires_grad = False
 
     optimizer = torch.optim.AdamW([
-        {'params': backbone_params, 'lr': 5e-5, 'weight_decay': 1e-4},
+        {'params': backbone_params, 'lr': backbone_lr, 'weight_decay': 1e-4},
         {'params': head_params,     'lr': 5e-4, 'weight_decay': 1e-4}
     ])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=4)
@@ -673,7 +676,7 @@ baseline_model = DenseNet121_Baseline(num_classes=5)
 baseline_model, baseline_history, baseline_best_ep = train_model(
     baseline_model, "DenseNet121_Baseline",
     train_loader, val_loader, class_weights_tensor,
-    max_epochs=60, freeze_epochs=8, patience=12
+    max_epochs=60, freeze_epochs=8, patience=20
 )
 
 # Train Full Model (DenseNet121 + CBAM + FPN)
@@ -682,7 +685,7 @@ full_model = DenseNet121_CBAM_FPN(num_classes=5)
 full_model, full_history, full_best_ep = train_model(
     full_model, "DenseNet121_CBAM_FPN",
     train_loader, val_loader, class_weights_tensor,
-    max_epochs=60, freeze_epochs=8, patience=12
+    max_epochs=60, freeze_epochs=8, patience=20
 )""")
 
 # --- Cell 7: Evaluation Function ---
