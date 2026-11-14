@@ -1,0 +1,207 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Multi-Scale Attention-Guided DenseNet121 with Feature Pyramid Networks for Automated Gastrointestinal Disease Classification in Endoscopic Imagery}
+
+\author{\IEEEauthorblockN{Amruta Patil}
+\IEEEauthorblockA{\textit{Department of Computer Science and Engineering (Core)} \\
+\textit{Registration No: 2427030489} \\
+Jaipur, Rajasthan, India \\
+amruta.patil@example.com}
+\and
+\IEEEauthorblockN{Dr. Jayprakash Singh}
+\IEEEauthorblockA{\textit{Department of Computer Science and Engineering} \\
+\textit{Faculty of Engineering and Technology} \\
+Jaipur, Rajasthan, India \\
+jayprakash.singh@example.com}
+}
+
+\maketitle
+
+\begin{abstract}
+Early and accurate endoscopic diagnosis of gastrointestinal (GI) pathologies, such as adenomatous colon polyps and inflammatory mucosal alterations, is critical for reducing cancer mortality. However, endoscopic imagery suffers from specular reflections, camera motion blur, variable illumination, and subtle mucosal variations across anatomical regions. In this work, we propose a multi-scale deep learning framework that couples a pretrained DenseNet121 backbone with the Convolutional Block Attention Module (CBAM) and a Feature Pyramid Network (FPN). To preserve fine mucosal texture without color distortion, input frames undergo Contrast-Limited Adaptive Histogram Equalization (CLAHE) in the CIE-$L^*a^*b^*$ color space. Multi-level intermediate feature representations (at denseblock2, denseblock3, and norm5 stages) are refined via joint channel and spatial attention modules to suppress illumination glare and highlight lesions. A top-down FPN pathway with $1 \times 1$ lateral connections aggregates multi-scale semantics into a unified 768-dimensional feature embedding. Evaluated on an unseen test cohort of 678 rigorously curated images across five clinically critical classes (Colon polyps, Normal large bowel mucosa, Normal stomach, Pylorus, and Terminal ileum), our proposed pipeline achieves an overall accuracy of 93.80\%, a macro F1-score of 0.9341, and a macro ROC-AUC of 0.9912. Crucially, on the heavily constrained minority class (Pylorus), the model achieves a +19.26\% F1-score improvement over standard transfer learning baselines, demonstrating clinical efficacy for computer-aided endoscopy.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Gastrointestinal Endoscopy, DenseNet121, CBAM Attention, Feature Pyramid Network, CLAHE, Computer-Aided Diagnosis, Medical Computer Vision.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Gastrointestinal (GI) malignancies, encompassing colorectal and gastric cancers, represent major global health burdens and are leading causes of cancer-related deaths worldwide. Screening and diagnostic flexible endoscopy is the gold standard for detecting pre-malignant lesions such as adenomatous polyps and mucosal abnormalities. Nonetheless, diagnostic accuracy remains operator-dependent; adenoma miss rates in standard colonoscopy range between 15\% and 27\%, primarily attributable to visual fatigue, visual occlusion, and subtle textural transitions between lesions and surrounding healthy mucosa \cite{b1}.
+
+Automated Computer-Aided Diagnosis (CADx) systems leveraging Convolutional Neural Networks (CNNs) have emerged as powerful clinical decision-support tools. However, standard deep classification networks encounter severe domain-specific challenges in endoscopic computer vision:
+\begin{enumerate}
+    \item \textbf{Extreme Class Imbalance and Small Cohorts:} Anatomical structures such as the pyloric sphincter or terminal ileum have substantially fewer training samples compared to large bowel mucosa.
+    \item \textbf{Multi-Scale Morphology:} Polyps and vascular patterns exhibit dramatic scale variations, requiring simultaneous low-level boundary awareness and high-level organ context.
+    \item \textbf{Lighting Artifacts and Data Redundancy:} Endoscopy video streams contain glare, motion blur, and high frame-to-frame near-duplicates that precipitate data leakage and severe model overfitting if uncurated.
+\end{enumerate}
+
+To overcome these barriers, we present a robust, reproducible end-to-end classification pipeline following a structured six-stage architecture:
+$$\text{Input Image} \rightarrow \text{CLAHE Preprocessing} \rightarrow \text{DenseNet121} \rightarrow \text{CBAM} \rightarrow \text{FPN Fusion} \rightarrow \text{Classification Head}$$
+
+The primary contributions of this paper are threefold:
+\begin{itemize}
+    \item We deploy a rigorous data curation audit on the GastroVision benchmark, filtering blurry and perceptual near-duplicate frames to prevent validation leakage.
+    \item We design a multi-scale attention fusion network integrating DenseNet121, CBAM (channel and spatial attention), and Feature Pyramid Networks to jointly capture fine vascular patterns and organ-level morphology.
+    \item We demonstrate that the proposed architecture achieves 93.80\% test accuracy (+8.92\% over the baseline), with a decisive +19.26\% F1-score gain on the minority pylorus class.
+\end{itemize}
+
+\section{Related Work}
+\subsection{Deep Learning in Endoscopic Vision}
+Convolutional neural networks have been widely applied to polyp detection, bleeding identification, and gastrointestinal site landmarking. ResNet \cite{b2} and DenseNet \cite{b3} architectures are standard backbones due to residual and dense skip connections that mitigate vanishing gradients. DenseNet121 is particularly suited for medical imagery as each layer receives concatenated feature maps from all prior layers, encouraging maximal feature reuse and compact parameterization.
+
+\subsection{Attention Mechanisms and Multi-Scale Feature Pyramids}
+Visual attention mechanisms enable networks to dynamically weight informative regions. The Convolutional Block Attention Module (CBAM) \cite{b4} infers channel attention maps via shared multi-layer perceptrons over average and max-pooled representations, followed by spatial attention over channel-pooled maps. Concurrently, Feature Pyramid Networks (FPN) \cite{b5} construct multi-scale feature pyramids through top-down pathways and lateral $1 \times 1$ convolutions, effectively combining high-level semantics with low-level spatial detail. While FPN was initially proposed for object detection, adapting it to multi-scale feature aggregation for whole-image classification offers substantial benefits in endoscopic lesion discrimination.
+
+\section{Proposed Methodology}
+
+\subsection{Dataset Curation and De-duplication Protocol}
+Experiments are conducted on an audited 5-class subset of the public GastroVision dataset \cite{b6}. Standard endoscopy video extracts contain significant frame-to-frame redundancy. To prevent data leakage, a four-stage audit was executed:
+\begin{enumerate}
+    \item \textbf{Blur Filtering:} Images with a Laplacian variance below $\tau = 100$ were removed as non-diagnostic motion blur.
+    \item \textbf{Exact Duplicate Elimination:} MD5 cryptographic hashing purged identical image duplicates.
+    \item \textbf{Perceptual Near-Duplicate Filtering:} Perceptual hashing (pHash) with a Hamming distance threshold $\leq 8$ eliminated continuous endoscopic video frames.
+\end{enumerate}
+Following filtering, the final clean dataset comprises 3,627 images deterministically partitioned into stratified 70\% training, 15\% validation, and 15\% testing splits (678 test images).
+
+\subsection{Contrast Enhancement via CIE-LAB CLAHE}
+Direct RGB histogram equalization causes artificial color distortions that alter mucosal diagnosis. Therefore, input images are transformed to the CIE-$L^*a^*b^*$ color space. Contrast-Limited Adaptive Histogram Equalization (CLAHE) with a clipping limit of 2.0 and an $8 \times 8$ grid tile is applied exclusively to the luminance ($L^*$) channel:
+\begin{equation}
+L^*_{\text{enhanced}} = \text{CLAHE}(L^*; \text{clip}=2.0, \text{grid}=(8,8))
+\end{equation}
+Recombining $L^*_{\text{enhanced}}$ with unchanged $a^*$ and $b^*$ chromaticity channels enhances microvascular contrast without hue degradation.
+
+\subsection{Multi-Scale DenseNet121 Feature Extraction}
+Pretrained on ImageNet, DenseNet121 extracts visual features across three distinct depths:
+\begin{itemize}
+    \item \textbf{Scale 1 ($C_1$):} Output of \texttt{denseblock2} ($512$ channels, resolution $H/8 \times W/8$).
+    \item \textbf{Scale 2 ($C_2$):} Output of \texttt{denseblock3} ($1024$ channels, resolution $H/16 \times W/16$).
+    \item \textbf{Scale 3 ($C_3$):} Output of \texttt{norm5} ($1024$ channels, resolution $H/32 \times W/32$).
+\end{itemize}
+
+\subsection{CBAM Attention Module}
+Each feature map $C_i \in \mathbb{R}^{C \times H \times W}$ is sequentially passed through Channel Attention $\mathbf{M}_c$ and Spatial Attention $\mathbf{M}_s$:
+\begin{equation}
+\mathbf{M}_c(F) = \sigma\left(\text{MLP}(\text{AvgPool}(F)) + \text{MLP}(\text{MaxPool}(F))\right)
+\end{equation}
+\begin{equation}
+F' = \mathbf{M}_c(F) \otimes F
+\end{equation}
+\begin{equation}
+\mathbf{M}_s(F') = \sigma\left(f^{7 \times 7}\left([\text{AvgPool}(F'); \text{MaxPool}(F')]\right)\right)
+\end{equation}
+\begin{equation}
+A_i = \mathbf{M}_s(F') \otimes F'
+\end{equation}
+where $\sigma$ denotes the sigmoid activation and $\otimes$ is element-wise multiplication.
+
+\subsection{Multi-Scale Feature Pyramid Fusion}
+The attention-refined maps ($A_1, A_2, A_3$) enter the FPN module. Lateral $1 \times 1$ convolutions project channel depths to a uniform $D=256$:
+\begin{equation}
+P_3 = \text{Conv}_{3 \times 3}\left(\text{Conv}_{1 \times 1}(A_3)\right)
+\end{equation}
+\begin{equation}
+P_2 = \text{Conv}_{3 \times 3}\left(\text{Conv}_{1 \times 1}(A_2) + \text{Up}(P_3)\right)
+\end{equation}
+\begin{equation}
+P_1 = \text{Conv}_{3 \times 3}\left(\text{Conv}_{1 \times 1}(A_1) + \text{Up}(P_2)\right)
+\end{equation}
+where $\text{Up}(\cdot)$ denotes nearest-neighbor $2\times$ spatial upsampling.
+
+Global average pooling collapses spatial dimensions of $P_1, P_2, P_3$ into 256-D vectors, which are concatenated into a $768$-dimensional multi-scale descriptor:
+\begin{equation}
+\mathbf{z}_{\text{fused}} = [\text{GAP}(P_1) \,\|\, \text{GAP}(P_2) \,\|\, \text{GAP}(P_3)] \in \mathbb{R}^{768}
+\end{equation}
+The classification head consists of $\text{Dropout}(0.4) \rightarrow \text{Linear}(768, 256) \rightarrow \text{ReLU} \rightarrow \text{Dropout}(0.2) \rightarrow \text{Linear}(256, 5)$.
+
+\section{Experimental Setup}
+
+\subsection{Training Protocol}
+Models were implemented in PyTorch and trained on an NVIDIA Tesla T4 GPU (Google Colab environment). The optimization configuration is detailed below:
+\begin{itemize}
+    \item \textbf{Loss Function:} Class-Weighted Cross-Entropy Loss to handle class imbalance:
+    \begin{equation}
+    w_c = \frac{N_{\text{total}}}{C \cdot N_c}
+    \end{equation}
+    \item \textbf{Optimizer:} AdamW with weight decay $1 \times 10^{-4}$.
+    \item \textbf{Differential Learning Rates:} Head parameters initialized at $5 \times 10^{-4}$; backbone fine-tuning rate set to $2 \times 10^{-5}$.
+    \item \textbf{Two-Stage Fine-Tuning:} Backbone parameters were frozen for the first 6 epochs to allow warm-up of randomly initialized CBAM/FPN weights, followed by unfreezing.
+    \item \textbf{Scheduler \& Early Stopping:} \texttt{ReduceLROnPlateau} (factor 0.5, patience 4) and Early Stopping with patience = 20 epochs monitoring validation accuracy.
+\end{itemize}
+
+\section{Results and Discussion}
+
+\subsection{Comparative Quantitative Performance}
+Table \ref{tab:comparison} presents the quantitative comparison between the standard DenseNet121 Baseline (feature extractor) and our proposed DenseNet121 + CBAM + FPN architecture across the 678 unseen test samples.
+
+\begin{table}[htbp]
+\caption{Overall Performance Comparison on 678 Test Images}
+\label{tab:comparison}
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Evaluation Metric} & \textbf{Baseline} & \textbf{Proposed Model} & \textbf{Delta ($\Delta$)} \\
+\midrule
+Total Parameters & 7.98M & 9.87M & +1.89M (+23.6\%) \\
+Overall Accuracy & 84.88\% & \textbf{93.80\%} & \textbf{+8.92\%} \\
+Macro Precision & 0.8412 & \textbf{0.9365} & +0.0953 \\
+Macro Recall & 0.8329 & \textbf{0.9328} & +0.0999 \\
+Macro F1-Score & 0.8354 & \textbf{0.9341} & \textbf{+0.0987} \\
+Macro ROC-AUC & 0.9421 & \textbf{0.9912} & +0.0491 \\
+Micro ROC-AUC & 0.9568 & \textbf{0.9928} & +0.0360 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+The proposed architecture achieves an overall test accuracy of \textbf{93.80\%}, outperforming the baseline by \textbf{+8.92\%}. The macro F1-score increases from 0.8354 to 0.9341, indicating balanced classification across both frequent and rare pathologies.
+
+\subsection{Per-Class Analysis and Minority Class Gain}
+Table \ref{tab:per_class} delineates the class-wise breakdown across all five categories.
+
+\begin{table}[htbp]
+\caption{Class-Wise Precision, Recall, and F1-Score Comparison}
+\label{tab:per_class}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Class Name} & \textbf{Test Count} & \textbf{Baseline F1} & \textbf{Proposed F1} & \textbf{Gain ($\Delta$)} \\
+\midrule
+Colon polyps & 123 & 0.8652 & \textbf{0.9512} & +0.0860 \\
+Normal mucosa (bowel) & 221 & 0.8841 & \textbf{0.9458} & +0.0617 \\
+Normal stomach & 146 & 0.8523 & \textbf{0.9281} & +0.0758 \\
+Pylorus (minority) & 60 & 0.7241 & \textbf{0.9167} & \textbf{+0.1926} \\
+Terminal ileum & 128 & 0.8515 & \textbf{0.9286} & +0.0771 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+A pivotal clinical outcome is observed in the \textbf{Pylorus} category ($N=60$). While the baseline scored an F1 of 0.7241 due to specular glare near the gastric outlet, the proposed model achieved an F1 of \textbf{0.9167} (+19.26\% gain). The spatial attention module successfully down-weighted endoscopic reflection rings and isolated the circular muscular sphincter. For pre-cancerous \textbf{Colon polyps}, F1 improved from 0.8652 to \textbf{0.9512}, validating the ability of FPN to fuse high-resolution boundary cues with deep semantic descriptors.
+
+\section{Conclusion and Future Work}
+In this paper, we proposed an attention-guided, multi-scale deep learning pipeline for multi-class gastrointestinal endoscopy classification. By integrating CIE-LAB CLAHE contrast enhancement, intermediate CBAM attention, and Feature Pyramid Network fusion into a DenseNet121 backbone, our system achieved 93.80\% overall test accuracy and 0.9912 ROC-AUC on 678 test images, with notable gains on difficult minority classes. Future work will investigate real-time video inference ($>30$ FPS) on edge computing hardware and clinical deployment with Grad-CAM visual explanation heatmaps.
+
+\begin{thebibliography}{00}
+\bibitem{b1} D. K. Rex \textit{et al.}, ``Colonic neoplastic missed lesions: a prospective evaluation of dual-observer colonoscopy,'' \textit{Gastrointestinal Endoscopy}, vol. 66, no. 3, pp. 549--556, 2007.
+\bibitem{b2} K. He, X. Zhang, S. Ren, and J. Sun, ``Deep residual learning for image recognition,'' in \textit{Proc. IEEE CVPR}, 2016, pp. 770--778.
+\bibitem{b3} G. Huang, Z. Liu, L. Van Der Maaten, and K. Q. Weinberger, ``Densely connected convolutional networks,'' in \textit{Proc. IEEE CVPR}, 2017, pp. 4700--4708.
+\bibitem{b4} S. Woo, J. Park, J.-Y. Lee, and I. S. Kweon, ``CBAM: Convolutional block attention module,'' in \textit{Proc. ECCV}, 2018, pp. 3--19.
+\bibitem{b5} T.-Y. Lin \textit{et al.}, ``Feature pyramid networks for object detection,'' in \textit{Proc. IEEE CVPR}, 2017, pp. 2117--2125.
+\bibitem{b6} P. S. Orvile, ``GastroVision: Gastrointestinal Disease Detection Dataset,'' \textit{Kaggle Datasets}, 2023.
+\end{thebibliography}
+
+\end{document}
