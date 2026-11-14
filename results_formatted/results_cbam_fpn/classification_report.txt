@@ -1,0 +1,13 @@
+Test accuracy: 0.9484
+
+                                                       precision    recall  f1-score   support
+
+                                         Colon polyps     0.9504    0.9350    0.9426       123
+Normal mucosa and vascular pattern in the large bowel     0.9905    0.9412    0.9652       221
+                                       Normal stomach     0.9456    0.9521    0.9488       146
+                                              Pylorus     0.8286    0.9667    0.8923        60
+                           Small bowel_terminal ileum     0.9462    0.9609    0.9535       128
+
+                                             accuracy                         0.9484       678
+                                            macro avg     0.9322    0.9512    0.9405       678
+                                         weighted avg     0.9508    0.9484    0.9489       678

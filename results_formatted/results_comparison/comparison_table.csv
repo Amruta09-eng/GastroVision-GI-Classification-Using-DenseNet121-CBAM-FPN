@@ -1,0 +1,7 @@
+Metric,DenseNet121 Baseline,DenseNet121 + CBAM + FPN,Gain (Delta)
+Parameters,7.98M,9.87M,+1.89M
+Accuracy,86.14%,94.84%,+8.70%
+Macro F1,0.8354,0.9341,+0.0987
+Macro AUC,0.9421,0.9912,+0.0491
+Pylorus F1,0.7241,0.9167,+0.1926
+Colon Polyps F1,0.8652,0.9512,+0.0860

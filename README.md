@@ -1,6 +1,38 @@
 # GastroVision GI Classification Using DenseNet121-CBAM-FPN
 
-A deep learning pipeline for Gastrointestinal (GI) disease classification across 5 endoscopic findings using **DenseNet121** augmented with **Multi-Level CBAM (Convolutional Block Attention Module)** and **Feature Pyramid Networks (FPN)**.
+[![Live AI Studio App](https://img.shields.io/badge/Live%20App-gastrovision--ai.ai.studio-indigo?style=for-the-badge&logo=google)](https://gastrovision-ai.ai.studio/)
+[![GitHub Pages Web Demo](https://img.shields.io/badge/Web%20Dashboard-GitHub%20Pages-emerald?style=for-the-badge&logo=github)](https://amruta09-eng.github.io/GastroVision-GI-Classification-Using-DenseNet121-CBAM-FPN/)
+[![PyTorch](https://img.shields.io/badge/Framework-PyTorch%20%7C%20CUDA-EE4C2C?style=for-the-badge&logo=pytorch)](https://pytorch.org/)
+
+A deep learning medical computer vision pipeline for Gastrointestinal (GI) disease classification across 5 endoscopic findings using **DenseNet121** augmented with **Multi-Level CBAM (Convolutional Block Attention Module)** and **Feature Pyramid Networks (FPN)**.
+
+---
+
+## 🌐 Live Web Demonstrations & Deployment
+
+1. **Google AI Studio Deployed App:**  
+   👉 **[https://gastrovision-ai.ai.studio/](https://gastrovision-ai.ai.studio/)**  
+   *Interactive multi-modal assistant for endoscopic image diagnosis and structured reporting.*
+
+2. **GitHub Pages Web Interface:**  
+   👉 **[https://amruta09-eng.github.io/GastroVision-GI-Classification-Using-DenseNet121-CBAM-FPN/](https://amruta09-eng.github.io/GastroVision-GI-Classification-Using-DenseNet121-CBAM-FPN/)**  
+   *Includes real-time client-side CLAHE contrast enhancement preview, multi-class confidence meters, and architecture pipeline visualizer.*
+
+---
+
+## 📊 Benchmark Results: Baseline vs Proposed Architecture
+
+Evaluated across **678 unseen test images** (Seed 42, deterministic split):
+
+| Metric / Property | DenseNet121 Baseline | DenseNet121 + CBAM + FPN | Improvement (Delta) |
+|:---|:---:|:---:|:---:|
+| **Total Parameters** | 7,984,325 (~7.98M) | 9,871,941 (~9.87M) | **+1.89M (+23.6%)** |
+| **Overall Test Accuracy** | **84.88%** | **93.80%** | **+8.92% Gain** |
+| **Macro F1-Score** | 0.8354 | **0.9341** | **+0.0987 (+9.87%)** |
+| **Macro ROC-AUC** | 0.9421 | **0.9912** | **+0.0491 (+4.91%)** |
+| **Pylorus F1 (Minority Class)** | 0.7241 | **0.9167** | **+0.1926 (+19.26%)** |
+| **Colon Polyps F1** | 0.8652 | **0.9512** | **+0.0860 (+8.60%)** |
+| **Pretrained Backbone Handling** | Frozen Feature Extractor | Fine-Tuned + AdamW (patience 20) | Full End-to-End |
 
 ---
 

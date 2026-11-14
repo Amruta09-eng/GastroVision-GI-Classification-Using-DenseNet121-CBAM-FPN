@@ -1,0 +1,12 @@
+{
+  "model_name": "DenseNet121_Baseline",
+  "test_accuracy": 0.8613569321533924,
+  "roc_auc_per_class": {
+    "Colon polyps": 0.9367465026001611,
+    "Normal mucosa and vascular pattern in the large bowel": 0.9328197867263385,
+    "Normal stomach": 0.9056287980224533,
+    "Pylorus": 0.8596278317152103,
+    "Small bowel_terminal ileum": 0.9208238636363636
+  },
+  "roc_auc_micro_average": 0.9190340538282821
+}
