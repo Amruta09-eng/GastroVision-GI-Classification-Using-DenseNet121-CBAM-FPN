@@ -26,7 +26,13 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Quarantine folder (preserved locally in Downloads/Gastrovision_5classes_Problematic_Images)
+# Academic evaluation reports (kept strictly private locally)
+*.docx
+build_full_report.py
+generate_final_pbl_report.py
+muj_logo.jpeg
+word/
+
 Problematic_Images_Quarantine/
 
 # Unsplit duplicates (the cleaned & stratified dataset is in dataset/)
