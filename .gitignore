@@ -26,10 +26,16 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Academic evaluation reports (kept strictly private locally)
+# Academic evaluation reports & presentations (kept strictly private locally)
 *.docx
+*.pptx
 build_full_report.py
 generate_final_pbl_report.py
+build_full_presentation.py
+create_presentation.py
+generate_diagrams.py
+interface_showcase.png
+pipeline_architecture_diagram.png
 muj_logo.jpeg
 word/
 
